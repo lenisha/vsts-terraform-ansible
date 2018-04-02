@@ -23,7 +23,7 @@ resource "azurerm_resource_group" "demo_resource_group" {
 
 # Create virtual network
 resource "azurerm_virtual_network" "demo_virtual_network" {
-  name                = "fpdemo"
+  name                = "javademo"
   address_space       = ["10.0.0.0/16"]
   location            = "eastus"
   resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
@@ -35,7 +35,7 @@ resource "azurerm_virtual_network" "demo_virtual_network" {
 
 # Create subnet
 resource "azurerm_subnet" "demo_subnet" {
-  name                 = "fpdemo"
+  name                 = "javademo"
   resource_group_name  = "${azurerm_resource_group.demo_resource_group.name}"
   virtual_network_name = "${azurerm_virtual_network.demo_virtual_network.name}"
   address_prefix       = "10.0.1.0/24"
@@ -43,7 +43,7 @@ resource "azurerm_subnet" "demo_subnet" {
 
 # Create public IPs
 resource "azurerm_public_ip" "demo_public_ip" {
-  name                         = "fppublicip"
+  name                         = "javapublicip"
   location                     = "eastus"
   resource_group_name          = "${azurerm_resource_group.demo_resource_group.name}"
   public_ip_address_allocation = "static"
@@ -56,7 +56,7 @@ resource "azurerm_public_ip" "demo_public_ip" {
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "demo_security_group" {
-  name                = "fpsecuritygroups"
+  name                = "javasecuritygroups"
   location            = "eastus"
   resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
 
