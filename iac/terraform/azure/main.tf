@@ -114,7 +114,7 @@ resource "azurerm_lb_probe" "vmss_probe" {
   resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
   loadbalancer_id     = "${azurerm_lb.vmss_lb.id}"
   name                = "ssh-running-probe"
-  port                = "80"
+  port                = "8080"
 }
 
 resource "azurerm_lb_rule" "lbnatrule" {
