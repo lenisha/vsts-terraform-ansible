@@ -49,9 +49,6 @@
   firewalld: port={{ https_port }}/tcp permanent=true state=enabled immediate=yes
   when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'"
 
-- name: wait for tomcat to start
-  wait_for: port={{http_port}}
-
 - name: Deploy sample app
   copy: src=../../build/libs/spring-music.war dest=/var/lib/tomcat/webapps/ROOT.war owner=tomcat group=tomcat
   notify: restart tomcat
