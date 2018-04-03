@@ -6,7 +6,7 @@
   become: true
   become_method: sudo
   vars:
-    http_port: 80
+    http_port: 8080
     https_port: 8443
     admin_username: admin
     admin_password: adminsecret
