@@ -185,7 +185,7 @@ resource "azurerm_virtual_machine_scale_set" "vmss" {
   }
 
   storage_profile_image_reference {
-    publisher = "Canonical"
+    publisher = "RedHat"
     offer     = "RHEL"
     sku       = "7.3"
     version   = "latest"
