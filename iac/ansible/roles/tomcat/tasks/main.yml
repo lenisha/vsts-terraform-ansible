@@ -51,6 +51,12 @@
 
 - name: wait for tomcat to start
   wait_for: port={{http_port}}
+
+- name: unDeploy sample app
+  file: path=/usr/share/tomcat/webapps/spring-music.war owner=tomcat group=tomcat state=absent
+
+- name: wait for tomcat to undeploy the app
+  wait_for: path=/usr/share/tomcat/webapps/spring-music/ state=absent
   
 - name: Deploy sample app
   copy: src=../../build/libs/spring-music.war dest=/usr/share/tomcat/webapps/spring-music.war owner=tomcat group=tomcat
