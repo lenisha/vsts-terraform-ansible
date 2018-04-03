@@ -47,7 +47,7 @@ resource "azurerm_public_ip" "demo_public_ip" {
   location                     = "eastus"
   resource_group_name          = "${azurerm_resource_group.demo_resource_group.name}"
   public_ip_address_allocation = "static"
-  domain_name_label            = "demoiac"
+  domain_name_label            = "demojavaiac"
 
   tags {
     environment = "Terraform Demo"

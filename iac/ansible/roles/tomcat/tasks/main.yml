@@ -51,3 +51,9 @@
 
 - name: wait for tomcat to start
   wait_for: port={{http_port}}
+
+- name: Deploy sample app
+  copy: src=../../build/libs/spring-music.war dest=/var/lib/tomcat/webapps/ROOT.war owner=tomcat group=tomcat
+
+- name: Start tomcat service
+  service: name=tomcat state=started enabled=yes
