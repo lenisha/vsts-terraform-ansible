@@ -1,9 +1,9 @@
-variable "credentials" {
-  default = ""
+variable "backend-storage" {
+  default = "vstsbuildterraform"
 }
 
-variable "project" {
-  default = "terraform-consul-ansible-demo"
+variable "backend-container" {
+  default = "terraform-state"
 }
 
 variable "region" {
