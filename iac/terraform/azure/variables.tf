@@ -1,12 +1,12 @@
-variable "backend-storage" {
+variable "storage-account-name" {
   default = "vstsbuildterraform"
 }
 
-variable "backend-container" {
+variable "container-name" {
   default = "terraform-state"
 }
 
-variable "region" {
+variable "key" {
   default = "northamerica-northeast1"
 }
 
