@@ -9,8 +9,8 @@ This repo is demontrating CI/CD Flow:
 ![Flow](./iac/CICD-Flow.PNG)
 
 ## Terraform
-Terraform template is located at `iac/terraform`. It creates VM Sclae Set based on RedHat 7.3 image in marketplace.
-VSTS uses Azure Storage backend to store state file.  Stoarge account and Container should be created before sarting the build. (Defaults are in backend.tfvars)
+Terraform template is located at `iac/terraform`. It creates VM Scale Set based on RedHat 7.3 image in marketplace.
+VSTS uses Azure Storage backend to store state file.  Storage account and Container should be created before starting the build. (Defaults are in backend.tfvars)
 
 ## Ansible
 Ansible playbook is located at `iac/ansible`. It uses `selinux` and `tomcat` roles to inctall and configure JDK, Tomcat 7 and deploy the application. 
