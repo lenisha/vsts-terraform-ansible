@@ -1,11 +1,7 @@
 terraform {
   required_version = ">= 0.11"
 
-  backend "azurerm" {
-    storage_account_name = "${var.backend-storage}"
-    container_name       = "${var.backend-container}"
-    key                  = "demo-java.terraform.tfstate"
-  }
+  backend "azurerm" {}
 }
 
 # Configure the Microsoft Azure Provider
