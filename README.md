@@ -1,5 +1,23 @@
-Spring Music
+Continuous Integration and Deployment using VSTS , Terraform and Ansible
 ============
+
+This repo is demontrating CI/CD Flow:
+- Uses VSTS Build to build SpringMusic App (gradle)
+- Uses VSTS Release to invoke Terraform to provision Infrastructure for the application (VMSS, LB, NSG)
+- Uses VSTS Release to invoke Ansible to install JDK, Tomcat 7 and SpringMusic App on provisioned VMs
+
+![Flow](./iac/CICD-Flow.PNG)
+
+## Terraform
+Terraform template is located at `iac/terraform`. It creates VM Sclae Set based on RedHat 7.3 image in marketplace.
+VSTS uses Azure Storage backend to store state file.  Stoarge account and Container should be created before sarting the build. (Defaults are in backend.tfvars)
+
+## Ansible
+Ansible playbook is located at `iac/ansible`. It uses `selinux` and `tomcat` roles to inctall and configure JDK, Tomcat 7 and deploy the application. 
+
+
+## Spring Music Sample Application
+
 
 This is a sample application for using database services on [Cloud Foundry](http://cloudfoundry.org) with the [Spring Framework](http://spring.io).
 

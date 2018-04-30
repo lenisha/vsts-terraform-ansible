@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "demo_resource_group" {
 resource "azurerm_virtual_network" "demo_virtual_network" {
   name                = "javademo"
   address_space       = ["10.0.0.0/16"]
-  location            = "eastus"
+  location            = "${azurerm_resource_group.demo_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
 
   tags {
@@ -40,45 +40,10 @@ resource "azurerm_subnet" "demo_subnet" {
 # Create public IPs
 resource "azurerm_public_ip" "demo_public_ip" {
   name                         = "javapublicip"
-  location                     = "eastus"
+  location                     = "${azurerm_resource_group.demo_resource_group.location}"
   resource_group_name          = "${azurerm_resource_group.demo_resource_group.name}"
   public_ip_address_allocation = "static"
   domain_name_label            = "demojavaiac"
-
-  tags {
-    environment = "Terraform Demo"
-  }
-}
-
-# Create Network Security Group and rule
-resource "azurerm_network_security_group" "demo_security_group" {
-  name                = "javasecuritygroups"
-  location            = "eastus"
-  resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
-
-  security_rule {
-    name                       = "SSH"
-    priority                   = 1001
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "HTTP"
-    priority                   = 1002
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
 
   tags {
     environment = "Terraform Demo"
@@ -118,7 +83,7 @@ resource "azurerm_lb_rule" "lbnatrule" {
   loadbalancer_id                = "${azurerm_lb.vmss_lb.id}"
   name                           = "http2"
   protocol                       = "Tcp"
-  frontend_port                  = "8080"
+  frontend_port                  = "80"
   backend_port                   = "8080"
   backend_address_pool_id        = "${azurerm_lb_backend_address_pool.bpepool.id}"
   frontend_ip_configuration_name = "PublicIPAddress"
@@ -163,7 +128,7 @@ resource "random_id" "randomId" {
 resource "azurerm_storage_account" "demo_storage_account" {
   name                     = "diag${random_id.randomId.hex}"
   resource_group_name      = "${azurerm_resource_group.demo_resource_group.name}"
-  location                 = "eastus"
+  location                 = "${azurerm_resource_group.demo_resource_group.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -175,7 +140,7 @@ resource "azurerm_storage_account" "demo_storage_account" {
 # Create virtual machine sclae set
 resource "azurerm_virtual_machine_scale_set" "vmss" {
   name                = "vmscaleset"
-  location            = "eastus"
+  location            = "${azurerm_resource_group.demo_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
   upgrade_policy_mode = "Automatic"
 
@@ -234,10 +199,6 @@ resource "azurerm_virtual_machine_scale_set" "vmss" {
   tags {
     environment = "Terraform Demo"
   }
-
-  #   provisioner "local-exec" {
-  #     command = "sleep 90; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u azureuser --private-key id_rsa -i '${azurerm_public_ip.demo_public_ip.ip_address}', master.yml"
-  #    }
 }
 
 output "vm_ip" {
