@@ -35,7 +35,7 @@ resource "azurerm_availability_set" "avset" {
 }
 
 resource "azurerm_public_ip" "lbpip" {
-  name                         = "${var.rg_prefix}-ip"
+  name                         = "${var.lb_ip_dns_name}-ip"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
   public_ip_address_allocation = "dynamic"
@@ -76,7 +76,7 @@ resource "azurerm_lb_backend_address_pool" "backend_pool" {
 resource "azurerm_lb_nat_rule" "tcp" {
   resource_group_name            = "${azurerm_resource_group.rg.name}"
   loadbalancer_id                = "${azurerm_lb.lb.id}"
-  name                           = "RDP-VM-${count.index}"
+  name                           = "SSH-VM-${count.index}"
   protocol                       = "tcp"
   frontend_port                  = "5000${count.index + 1}"
   backend_port                   = 22
@@ -167,9 +167,9 @@ resource "azurerm_virtual_machine" "vm" {
 }
 
 output "vm_ip" {
-  value = "${azurerm_public_ip.lbpip.ip_address}"
+  value = "${azurerm_public_ip.lbpip.fqdn}"
 }
 
 output "vm_dns" {
-  value = "http://${azurerm_public_ip.lbpip.domain_name_label}.eastus.cloudapp.azure.com"
+  value = "http://${azurerm_public_ip.lbpip.fqdn}"
 }
