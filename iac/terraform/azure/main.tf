@@ -90,18 +90,6 @@ resource "azurerm_lb_rule" "lbnatrule" {
   probe_id                       = "${azurerm_lb_probe.vmss_probe.id}"
 }
 
-resource "azurerm_lb_rule" "lbnatrule3" {
-  resource_group_name            = "${azurerm_resource_group.demo_resource_group.name}"
-  loadbalancer_id                = "${azurerm_lb.vmss_lb.id}"
-  name                           = "https"
-  protocol                       = "Tcp"
-  frontend_port                  = "8443"
-  backend_port                   = "8443"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.bpepool.id}"
-  frontend_ip_configuration_name = "PublicIPAddress"
-  probe_id                       = "${azurerm_lb_probe.vmss_probe.id}"
-}
-
 resource "azurerm_lb_nat_pool" "lbnatpool" {
   count                          = 3
   resource_group_name            = "${azurerm_resource_group.demo_resource_group.name}"
@@ -137,12 +125,23 @@ resource "azurerm_storage_account" "demo_storage_account" {
   }
 }
 
+resource "azurerm_availability_set" "avset" {
+  name                         = "avset${random_id.randomId.hex}"
+  location                     = "${azurerm_resource_group.demo_resource_group.location}"
+  resource_group_name          = "${azurerm_resource_group.demo_resource_group.name}"
+  platform_fault_domain_count  = 2
+  platform_update_domain_count = 2
+  managed                      = true
+}
+
 # Create virtual machine sclae set
-resource "azurerm_virtual_machine_scale_set" "vmss" {
-  name                = "vmscaleset"
+resource "azurerm_virtual_machine" "vm" {
+  name                = "vm${count.index}"
   location            = "${azurerm_resource_group.demo_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
   upgrade_policy_mode = "Automatic"
+  availability_set_id = "${azurerm_availability_set.avset.id}"
+  count               = 2
 
   sku {
     name     = "Standard_DS1_v2"

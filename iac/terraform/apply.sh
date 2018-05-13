@@ -1,5 +1,4 @@
 #!/bin/bash
-ls -la
 echo "************* execute terraform apply"
 ## execute terrafotm build and sendout to packer-build-output
 export ARM_CLIENT_ID=$1
