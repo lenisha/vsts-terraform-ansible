@@ -10,7 +10,7 @@ export ARM_ACCESS_KEY=$5
 terraform apply -auto-approve 
 
 export vmss_ip=$(terraform output vm_ip)
-echo "host1 ansible_ssh_port=50000 ansible_ssh_host=$vmss_ip" > inventory
-echo "host2 ansible_port=50001 ansible_ssh_host=$vmss_ip" >> inventory
+echo "host1 ansible_ssh_port=50001 ansible_ssh_host=$vmss_ip" > inventory
+echo "host2 ansible_port=50002 ansible_ssh_host=$vmss_ip" >> inventory
 
 cat inventory

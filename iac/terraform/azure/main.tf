@@ -8,7 +8,7 @@ terraform {
 provider "azurerm" {}
 
 # Create a resource group if it doesn’t exist
-resource "azurerm_resource_group" "demo_resource_group" {
+resource "azurerm_resource_group" "rg" {
   name     = "javademo"
   location = "eastus"
 
@@ -17,146 +17,129 @@ resource "azurerm_resource_group" "demo_resource_group" {
   }
 }
 
-# Create virtual network
-resource "azurerm_virtual_network" "demo_virtual_network" {
-  name                = "javademo"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.demo_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
-
-  tags {
-    environment = "Terraform Demo"
-  }
-}
-
-# Create subnet
-resource "azurerm_subnet" "demo_subnet" {
-  name                 = "javademo"
-  resource_group_name  = "${azurerm_resource_group.demo_resource_group.name}"
-  virtual_network_name = "${azurerm_virtual_network.demo_virtual_network.name}"
-  address_prefix       = "10.0.1.0/24"
-}
-
-# Create public IPs
-resource "azurerm_public_ip" "demo_public_ip" {
-  name                         = "javapublicip"
-  location                     = "${azurerm_resource_group.demo_resource_group.location}"
-  resource_group_name          = "${azurerm_resource_group.demo_resource_group.name}"
-  public_ip_address_allocation = "static"
-  domain_name_label            = "demojavaiac"
-
-  tags {
-    environment = "Terraform Demo"
-  }
-}
-
-resource "azurerm_lb" "vmss_lb" {
-  name                = "vmss-lb"
-  location            = "${azurerm_resource_group.demo_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
-
-  frontend_ip_configuration {
-    name                 = "PublicIPAddress"
-    public_ip_address_id = "${azurerm_public_ip.demo_public_ip.id}"
-  }
-
-  tags {
-    environment = "Terraform Demo"
-  }
-}
-
-resource "azurerm_lb_backend_address_pool" "bpepool" {
-  resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
-  loadbalancer_id     = "${azurerm_lb.vmss_lb.id}"
-  name                = "BackEndAddressPool"
-}
-
-resource "azurerm_lb_probe" "vmss_probe" {
-  resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
-  loadbalancer_id     = "${azurerm_lb.vmss_lb.id}"
-  name                = "ssh-running-probe"
-  port                = "8080"
-}
-
-resource "azurerm_lb_rule" "lbnatrule" {
-  resource_group_name            = "${azurerm_resource_group.demo_resource_group.name}"
-  loadbalancer_id                = "${azurerm_lb.vmss_lb.id}"
-  name                           = "http2"
-  protocol                       = "Tcp"
-  frontend_port                  = "80"
-  backend_port                   = "8080"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.bpepool.id}"
-  frontend_ip_configuration_name = "PublicIPAddress"
-  probe_id                       = "${azurerm_lb_probe.vmss_probe.id}"
-}
-
-resource "azurerm_lb_nat_pool" "lbnatpool" {
-  count                          = 3
-  resource_group_name            = "${azurerm_resource_group.demo_resource_group.name}"
-  name                           = "ssh"
-  loadbalancer_id                = "${azurerm_lb.vmss_lb.id}"
-  protocol                       = "Tcp"
-  frontend_port_start            = 50000
-  frontend_port_end              = 50119
-  backend_port                   = 22
-  frontend_ip_configuration_name = "PublicIPAddress"
-}
-
-# Generate random text for a unique storage account name
-resource "random_id" "randomId" {
-  keepers = {
-    # Generate a new ID only when a new resource group is defined
-    resource_group = "${azurerm_resource_group.demo_resource_group.name}"
-  }
-
-  byte_length = 8
-}
-
-# Create storage account for boot diagnostics
-resource "azurerm_storage_account" "demo_storage_account" {
-  name                     = "diag${random_id.randomId.hex}"
-  resource_group_name      = "${azurerm_resource_group.demo_resource_group.name}"
-  location                 = "${azurerm_resource_group.demo_resource_group.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags {
-    environment = "Terraform Demo"
-  }
+resource "azurerm_storage_account" "stor" {
+  name                     = "${var.dns_name}stor"
+  location                 = "${azurerm_resource_group.rg.location}"
+  resource_group_name      = "${azurerm_resource_group.rg.name}"
+  account_tier             = "${var.storage_account_tier}"
+  account_replication_type = "${var.storage_replication_type}"
 }
 
 resource "azurerm_availability_set" "avset" {
-  name                         = "avset${random_id.randomId.hex}"
-  location                     = "${azurerm_resource_group.demo_resource_group.location}"
-  resource_group_name          = "${azurerm_resource_group.demo_resource_group.name}"
+  name                         = "${var.dns_name}avset"
+  location                     = "${azurerm_resource_group.rg.location}"
+  resource_group_name          = "${azurerm_resource_group.rg.name}"
   platform_fault_domain_count  = 2
   platform_update_domain_count = 2
   managed                      = true
 }
 
-# Create virtual machine sclae set
-resource "azurerm_virtual_machine" "vm" {
-  name                = "vm${count.index}"
-  location            = "${azurerm_resource_group.demo_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.demo_resource_group.name}"
-  upgrade_policy_mode = "Automatic"
-  availability_set_id = "${azurerm_availability_set.avset.id}"
+resource "azurerm_public_ip" "lbpip" {
+  name                         = "${var.lb_ip_dns_name}-ip"
+  location                     = "${azurerm_resource_group.rg.location}"
+  resource_group_name          = "${azurerm_resource_group.rg.name}"
+  public_ip_address_allocation = "dynamic"
+  domain_name_label            = "${var.lb_ip_dns_name}"
+}
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = "${var.virtual_network_name}"
+  location            = "${azurerm_resource_group.rg.location}"
+  address_space       = ["${var.address_space}"]
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+}
+
+resource "azurerm_subnet" "subnet" {
+  name                 = "${var.rg_prefix}subnet"
+  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
+  resource_group_name  = "${azurerm_resource_group.rg.name}"
+  address_prefix       = "${var.subnet_prefix}"
+}
+
+resource "azurerm_lb" "lb" {
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  name                = "${var.rg_prefix}lb"
+  location            = "${azurerm_resource_group.rg.location}"
+
+  frontend_ip_configuration {
+    name                 = "LoadBalancerFrontEnd"
+    public_ip_address_id = "${azurerm_public_ip.lbpip.id}"
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "backend_pool" {
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  loadbalancer_id     = "${azurerm_lb.lb.id}"
+  name                = "BackendPool1"
+}
+
+resource "azurerm_lb_nat_rule" "tcp" {
+  resource_group_name            = "${azurerm_resource_group.rg.name}"
+  loadbalancer_id                = "${azurerm_lb.lb.id}"
+  name                           = "SSH-VM-${count.index}"
+  protocol                       = "tcp"
+  frontend_port                  = "5000${count.index + 1}"
+  backend_port                   = 22
+  frontend_ip_configuration_name = "LoadBalancerFrontEnd"
+  count                          = 2
+}
+
+resource "azurerm_lb_rule" "lb_rule" {
+  resource_group_name            = "${azurerm_resource_group.rg.name}"
+  loadbalancer_id                = "${azurerm_lb.lb.id}"
+  name                           = "LBRule"
+  protocol                       = "tcp"
+  frontend_port                  = 80
+  backend_port                   = 8080
+  frontend_ip_configuration_name = "LoadBalancerFrontEnd"
+  enable_floating_ip             = false
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.backend_pool.id}"
+  idle_timeout_in_minutes        = 5
+  probe_id                       = "${azurerm_lb_probe.lb_probe.id}"
+  depends_on                     = ["azurerm_lb_probe.lb_probe"]
+}
+
+resource "azurerm_lb_probe" "lb_probe" {
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  loadbalancer_id     = "${azurerm_lb.lb.id}"
+  name                = "tcpProbe"
+  protocol            = "tcp"
+  port                = 8080
+  interval_in_seconds = 5
+  number_of_probes    = 2
+}
+
+resource "azurerm_network_interface" "nic" {
+  name                = "nic${count.index}"
+  location            = "${azurerm_resource_group.rg.location}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
   count               = 2
 
-  sku {
-    name     = "Standard_DS1_v2"
-    tier     = "Standard"
-    capacity = 2
+  ip_configuration {
+    name                                    = "ipconfig${count.index}"
+    subnet_id                               = "${azurerm_subnet.subnet.id}"
+    private_ip_address_allocation           = "Dynamic"
+    load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.backend_pool.id}"]
+    load_balancer_inbound_nat_rules_ids     = ["${element(azurerm_lb_nat_rule.tcp.*.id, count.index)}"]
+  }
+}
+
+# Create virtual machine
+resource "azurerm_virtual_machine" "vm" {
+  name                  = "vm${count.index}"
+  location              = "${azurerm_resource_group.rg.location}"
+  resource_group_name   = "${azurerm_resource_group.rg.name}"
+  availability_set_id   = "${azurerm_availability_set.avset.id}"
+  network_interface_ids = ["${element(azurerm_network_interface.nic.*.id, count.index)}"]
+  count                 = 2
+  vm_size               = "Standard_D1"
+
+  storage_os_disk {
+    name          = "osdisk${count.index}"
+    create_option = "FromImage"
   }
 
-  storage_profile_os_disk {
-    name              = ""
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Premium_LRS"
-  }
-
-  storage_profile_image_reference {
+  storage_image_reference {
     publisher = "RedHat"
     offer     = "RHEL"
     sku       = "7.3"
@@ -164,9 +147,9 @@ resource "azurerm_virtual_machine" "vm" {
   }
 
   os_profile {
-    computer_name_prefix = "myvm"
-    admin_username       = "azureuser"
-    admin_password       = "Passwword1234"
+    computer_name  = "myvm"
+    admin_username = "azureuser"
+    admin_password = "Passwword1234"
   }
 
   os_profile_linux_config {
@@ -178,32 +161,15 @@ resource "azurerm_virtual_machine" "vm" {
     }
   }
 
-  network_profile {
-    name    = "terraformnetworkprofile"
-    primary = true
-
-    ip_configuration {
-      name                                   = "IPConfiguration"
-      subnet_id                              = "${azurerm_subnet.demo_subnet.id}"
-      load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
-      load_balancer_inbound_nat_rules_ids    = ["${element(azurerm_lb_nat_pool.lbnatpool.*.id, count.index)}"]
-    }
-  }
-
-  boot_diagnostics {
-    enabled     = "true"
-    storage_uri = "${azurerm_storage_account.demo_storage_account.primary_blob_endpoint}"
-  }
-
   tags {
     environment = "Terraform Demo"
   }
 }
 
 output "vm_ip" {
-  value = "${azurerm_public_ip.demo_public_ip.ip_address}"
+  value = "${azurerm_public_ip.lbpip.fqdn}"
 }
 
 output "vm_dns" {
-  value = "http://${azurerm_public_ip.demo_public_ip.domain_name_label}.eastus.cloudapp.azure.com"
+  value = "http://${azurerm_public_ip.lbpip.fqdn}"
 }
