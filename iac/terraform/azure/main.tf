@@ -129,7 +129,6 @@ resource "azurerm_virtual_machine" "vm" {
   name                  = "vm${count.index}"
   location              = "${azurerm_resource_group.rg.location}"
   resource_group_name   = "${azurerm_resource_group.rg.name}"
-  upgrade_policy_mode   = "Automatic"
   availability_set_id   = "${azurerm_availability_set.avset.id}"
   network_interface_ids = ["${element(azurerm_network_interface.nic.*.id, count.index)}"]
   count                 = 2
@@ -148,9 +147,9 @@ resource "azurerm_virtual_machine" "vm" {
   }
 
   os_profile {
-    computer_name_prefix = "myvm"
-    admin_username       = "azureuser"
-    admin_password       = "Passwword1234"
+    computer_name  = "myvm"
+    admin_username = "azureuser"
+    admin_password = "Passwword1234"
   }
 
   os_profile_linux_config {
