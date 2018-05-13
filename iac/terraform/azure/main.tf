@@ -79,7 +79,7 @@ resource "azurerm_lb_nat_rule" "tcp" {
   name                           = "RDP-VM-${count.index}"
   protocol                       = "tcp"
   frontend_port                  = "5000${count.index + 1}"
-  backend_port                   = 3389
+  backend_port                   = 22
   frontend_ip_configuration_name = "LoadBalancerFrontEnd"
   count                          = 2
 }
@@ -90,7 +90,7 @@ resource "azurerm_lb_rule" "lb_rule" {
   name                           = "LBRule"
   protocol                       = "tcp"
   frontend_port                  = 80
-  backend_port                   = 80
+  backend_port                   = 8080
   frontend_ip_configuration_name = "LoadBalancerFrontEnd"
   enable_floating_ip             = false
   backend_address_pool_id        = "${azurerm_lb_backend_address_pool.backend_pool.id}"
